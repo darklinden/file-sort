@@ -8,159 +8,169 @@
 
 #import <Foundation/Foundation.h>
 
-//void enumFolder(NSString *folderPath)
-//{
-//    printf("enum folder: %s", folderPath.UTF8String);
-//    NSFileManager *fmgr = [NSFileManager defaultManager];
-//    NSError *err = nil;
-//    NSArray *array = [fmgr contentsOfDirectoryAtPath:folderPath error:&err];
-//    if (err) {
-//        printf("error with enum folder: %s err: %s \n", folderPath.UTF8String, err.description.UTF8String);
-//    }
-//    else {
-//        for (NSString *name in array) {
-//            NSString *path = [folderPath stringByAppendingPathComponent:name];
-//            BOOL isDirectory = NO;
-//            [fmgr fileExistsAtPath:path isDirectory:&isDirectory];
-//            
-//            switch (op) {
-//                case OperationDecrypt:
-//                {
-//                    if (isDirectory) {
-//                        enumFolder(path, op);
-//                    }
-//                    else {
-//                        
-//                        NSString *extension = path.pathExtension.lowercaseString;
-//                        if (![extension isEqualToString:@"png"]
-//                            && ![extension isEqualToString:@"jpg"]
-//                            && ![extension isEqualToString:@"jpeg"]) {
-//                            continue;
-//                        }
-//                        
-//                        int try = 0;
-//                        while (!isImageReadable(path)) {
-//                            try++;
-//                            DecryptFile(path);
-//                            
-//                            if (try >= 3) {
-//                                break;
-//                            }
-//                        }
-//                        
-//                        while (!isImageReadable(path)) {
-//                            try++;
-//                            EncryptFile(path);
-//                            
-//                            if (try >= 6) {
-//                                break;
-//                            }
-//                        }
-//                        
-//                        if (!isImageReadable(path)) {
-//                            NSString* msg = [NSString stringWithFormat:@"%@ 解密失败！", path.lastPathComponent];
-//                            [[NSAlert alertWithMessageText:msg defaultButton:@"OK" alternateButton:nil otherButton:nil informativeTextWithFormat:nil] runModal];
-//                        }
-//                    }
-//                }
-//                    break;
-//                case OperationEncrypt:
-//                {
-//                    if (isDirectory) {
-//                        enumFolder(path, op);
-//                    }
-//                    else {
-//                        
-//                        NSString *extension = path.pathExtension.lowercaseString;
-//                        if (![extension isEqualToString:@"png"]
-//                            && ![extension isEqualToString:@"jpg"]
-//                            && ![extension isEqualToString:@"jpeg"]) {
-//                            continue;
-//                        }
-//                        
-//                        int try = 0;
-//                        while (!isImageReadable(path)) {
-//                            try++;
-//                            DecryptFile(path);
-//                            
-//                            if (try >= 3) {
-//                                break;
-//                            }
-//                        }
-//                        
-//                        while (!isImageReadable(path)) {
-//                            try++;
-//                            EncryptFile(path);
-//                            
-//                            if (try >= 6) {
-//                                break;
-//                            }
-//                        }
-//                        
-//                        if (!isImageReadable(path)) {
-//                            NSString* msg = [NSString stringWithFormat:@"%@ 解密失败！", path.lastPathComponent];
-//                            [[NSAlert alertWithMessageText:msg defaultButton:@"OK" alternateButton:nil otherButton:nil informativeTextWithFormat:nil] runModal];
-//                            return;
-//                        }
-//                        EncryptFile(path);
-//                    }
-//                }
-//                    break;
-//                default:
-//                    break;
-//            }
-//        }
-//    }
-//}
+NSString* numString(NSString* str)
+{
+    NSString* num = @"0123456789";
+    NSMutableString* ret = [NSMutableString stringWithString:@""];
+    
+    for (int i = 0; i < str.length; i++) {
+        NSString* o = [str substringWithRange:NSMakeRange(i, 1)];
+        if ([num rangeOfString:o].location != NSNotFound) {
+            [ret appendString:o];
+        }
+        else {
+            if (ret.length > 0) {
+                NSString* e = [ret substringFromIndex:ret.length - 1];
+                if ([num rangeOfString:e].location != NSNotFound) {
+                    [ret appendString:@"."];
+                }
+            }
+        }
+    }
+    
+    return ret;
+}
+
+NSComparisonResult compareNumString(NSString* n1, NSString* n2)
+{
+    NSArray *a1 = [n1 componentsSeparatedByString:@"."];
+    NSArray *a2 = [n2 componentsSeparatedByString:@"."];
+    
+    if ([a1 count] < [a2 count]) {
+        return NSOrderedAscending;
+    }
+    else if ([a1 count] > [a2 count]) {
+        return NSOrderedDescending;
+    }
+    else {
+        for (int i = 0; i < a1.count; i++) {
+            long long step1 = [a1[i] longLongValue];
+            long long step2 = [a2[i] longLongValue];
+            
+            if (step1 < step2) {
+                return NSOrderedAscending;
+            }
+            else if (step1 > step2) {
+                return NSOrderedDescending;
+            }
+        }
+    }
+    
+    return NSOrderedSame;;
+}
 
 int main(int argc, const char * argv[]) {
     @autoreleasepool {
-        // insert code here...
         
-        if (argc != 2) {
-            NSLog(@"using: file-sort [folder-path] to make sorted files");
+        NSMutableArray* args = [NSMutableArray array];
+        for (int i = 0; i < argc; i++) {
+            [args addObject:[NSString stringWithUTF8String:argv[i]]];
+        }
+        
+        NSMutableArray *keys = [NSMutableArray array];
+        NSMutableArray *values = [NSMutableArray array];
+        
+        bool start = false;
+        for (int i = 0; i < argc; i++) {
+            
+            if ([args[i] hasPrefix:@"-"]) {
+                [keys addObject:[args[i] substringFromIndex:1]];
+                start = true;
+            }
+            else {
+                if (start) {
+                    [values addObject:args[i]];
+                }
+            }
+        }
+        
+        if (!keys.count || keys.count != values.count) {
+            printf("\n***** file-sort *****\n");
+            printf("\t参数:\n");
+            printf("\t-f folder_path\t\t\t使用文件夹内的文件\n");
+            printf("\t-ap key\t\t\t所有文件名前添加 key\n");
+            printf("\t-as key\t\t\t所有文件名后添加 key\n");
+            printf("\t-rp key\t\t\t所有文件名前移除 key\n");
+            printf("\t-rs key\t\t\t所有文件名后移除 key\n");
+            printf("\t-e key\t\t\t所有文件设置后缀为\n");
             return -1;
         }
         
-        NSString* path = [NSString stringWithUTF8String:argv[1]];
+        NSDictionary* _params = [NSDictionary dictionaryWithObjects:values forKeys:keys];
+        
+        NSString* src_folder = _params[@"f"];
+        NSString* des_folder = [src_folder stringByAppendingString:@"_sort"];
+        
         NSFileManager* fmgr = [NSFileManager defaultManager];
         
+        [fmgr removeItemAtPath:des_folder error:nil];
+        [fmgr createDirectoryAtPath:des_folder withIntermediateDirectories:YES attributes:nil error:nil];
+        
         BOOL isDirectory = NO;
-        BOOL exist = [fmgr fileExistsAtPath:path isDirectory:&isDirectory];
+        BOOL exist = [fmgr fileExistsAtPath:src_folder isDirectory:&isDirectory];
         
         if (!(exist && isDirectory)) {
-            NSLog(@"using: file-sort [folder-path] to make sorted files");
+            printf("\n***** file-sort *****\n");
+            printf("\t参数:\n");
+            printf("\t-f folder_path\t\t\t使用文件夹内的文件\n");
+            printf("\t-ap key\t\t\t所有文件名前添加 key\n");
+            printf("\t-as key\t\t\t所有文件名后添加 key\n");
+            printf("\t-rp key\t\t\t所有文件名前移除 key\n");
+            printf("\t-rs key\t\t\t所有文件名后移除 key\n");
+            printf("\t-e key\t\t\t所有文件设置后缀为\n");
+            printf("\t-n 0\t\t\t所有文件排序后从0开始命名\n");
             return -1;
         }
         
-        NSArray* array = [fmgr subpathsAtPath:path];
-        if (array.count) {
-            NSString* prefix = [path.lastPathComponent stringByAppendingString:@"_"];
-            NSString* src_folder = path;
-            NSString* des_folder = [path stringByAppendingString:@"_sort"];
-            [fmgr removeItemAtPath:des_folder error:nil];
-            [fmgr createDirectoryAtPath:des_folder withIntermediateDirectories:YES attributes:nil error:nil];
+        NSArray* array = [fmgr contentsOfDirectoryAtPath:src_folder error:nil];
+        array = [array sortedArrayUsingComparator:^NSComparisonResult(id _Nonnull obj1, id _Nonnull obj2) {
+            NSString* n1 = numString([obj1 stringByDeletingPathExtension]);
+            NSString* n2 = numString([obj2 stringByDeletingPathExtension]);
             
-            for (NSString* name in array) {
-                NSString* des_name = [[name stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]] stringByReplacingOccurrencesOfString:@"/" withString:@"_"];
-                
-                NSString* src_path = [src_folder stringByAppendingPathComponent:name];
-                
-                BOOL isDirectory = NO;
-                BOOL exist = [fmgr fileExistsAtPath:src_path isDirectory:&isDirectory];
-                if (exist && isDirectory) {
-                    NSLog(@"pass folder [%@]", src_path);
-                    continue;
+            return compareNumString(n1, n2);
+        }];
+            
+        for (int i = 0; i < array.count; i++) {
+            NSString* name = array[i];
+            NSString* sn = [name stringByDeletingPathExtension];
+            NSString* en = [name pathExtension];
+            if ([_params[@"e"] length]) {
+                en = _params[@"e"];
+            }
+            
+            if ([_params[@"n"] length]) {
+                sn = [NSString stringWithFormat:@"%lld", i + [_params[@"n"] longLongValue]];
+            }
+            else {
+                if ([_params[@"rp"] length]) {
+                    if ([sn hasPrefix:_params[@"rp"]]) {
+                        sn = [sn substringFromIndex:[_params[@"rp"] length]];
+                    }
                 }
                 
-                NSString* des_path = [des_folder stringByAppendingPathComponent:[prefix stringByAppendingString:des_name]];
-                
-                NSError* err = nil;
-                if (![fmgr copyItemAtPath:src_path toPath:des_path error:&err]) {
-                    NSLog(@"copy [%@] to [%@] failed!", src_path, des_path);
-                    return -1;
+                if ([_params[@"rs"] length]) {
+                    if ([sn hasSuffix:_params[@"rs"]]) {
+                        sn = [sn substringToIndex:sn.length - [_params[@"rs"] length]];
+                    }
                 }
                 
+                if ([_params[@"ap"] length]) {
+                    sn = [_params[@"ap"] stringByAppendingString:sn];
+                }
+                
+                if ([_params[@"as"] length]) {
+                    sn = [sn stringByAppendingString:_params[@"as"]];
+                }
+            }
+            
+            NSString* src_path = [src_folder stringByAppendingPathComponent:name];
+            NSString* des_path = [des_folder stringByAppendingPathComponent:[sn stringByAppendingPathExtension:en]];
+            
+            NSError* err = nil;
+            if (![fmgr copyItemAtPath:src_path toPath:des_path error:&err]) {
+                NSLog(@"copy [%@] to [%@] failed!", src_path, des_path);
+            }
+            else {
                 NSLog(@"copied [%@] to [%@] !", src_path, des_path);
             }
         }
