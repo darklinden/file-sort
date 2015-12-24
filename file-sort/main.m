@@ -90,9 +90,11 @@ int main(int argc, const char * argv[]) {
             printf("\t-f folder_path\t\t\t使用文件夹内的文件\n");
             printf("\t-ap key\t\t\t所有文件名前添加 key\n");
             printf("\t-as key\t\t\t所有文件名后添加 key\n");
+            printf("\t-r key\t\t\t所有文件名内移除 key\n");
             printf("\t-rp key\t\t\t所有文件名前移除 key\n");
             printf("\t-rs key\t\t\t所有文件名后移除 key\n");
             printf("\t-e key\t\t\t所有文件设置后缀为\n");
+            printf("\t-n 0\t\t\t所有文件排序后从0开始命名\n");
             return -1;
         }
         
@@ -115,6 +117,7 @@ int main(int argc, const char * argv[]) {
             printf("\t-f folder_path\t\t\t使用文件夹内的文件\n");
             printf("\t-ap key\t\t\t所有文件名前添加 key\n");
             printf("\t-as key\t\t\t所有文件名后添加 key\n");
+            printf("\t-r key\t\t\t所有文件名内移除 key\n");
             printf("\t-rp key\t\t\t所有文件名前移除 key\n");
             printf("\t-rs key\t\t\t所有文件名后移除 key\n");
             printf("\t-e key\t\t\t所有文件设置后缀为\n");
@@ -152,6 +155,10 @@ int main(int argc, const char * argv[]) {
                     if ([sn hasSuffix:_params[@"rs"]]) {
                         sn = [sn substringToIndex:sn.length - [_params[@"rs"] length]];
                     }
+                }
+                
+                if ([_params[@"r"] length]) {
+                    sn = [sn stringByReplacingOccurrencesOfString:_params[@"r"] withString:@""];
                 }
                 
                 if ([_params[@"ap"] length]) {
