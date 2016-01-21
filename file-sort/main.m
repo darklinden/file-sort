@@ -126,23 +126,33 @@ int main(int argc, const char * argv[]) {
         }
         
         NSArray* array = [fmgr contentsOfDirectoryAtPath:src_folder error:nil];
-        array = [array sortedArrayUsingComparator:^NSComparisonResult(id _Nonnull obj1, id _Nonnull obj2) {
+        array = [array sortedArrayUsingComparator:^NSComparisonResult(id obj1, id obj2) {
             NSString* n1 = numString([obj1 stringByDeletingPathExtension]);
             NSString* n2 = numString([obj2 stringByDeletingPathExtension]);
             
             return compareNumString(n1, n2);
         }];
-            
+        
+        int j = 0;
         for (int i = 0; i < array.count; i++) {
             NSString* name = array[i];
+            
+            if ([name isEqualToString:@".DS_Store"]) {
+                continue;
+            }
+            
             NSString* sn = [name stringByDeletingPathExtension];
             NSString* en = [name pathExtension];
             if ([_params[@"e"] length]) {
                 en = _params[@"e"];
+                if (![[[name pathExtension] lowercaseString] isEqualToString:en]) {
+                    continue;
+                }
             }
             
             if ([_params[@"n"] length]) {
-                sn = [NSString stringWithFormat:@"%lld", i + [_params[@"n"] longLongValue]];
+                sn = [NSString stringWithFormat:@"%lld", j + [_params[@"n"] longLongValue]];
+                j++;
             }
             else {
                 if ([_params[@"rp"] length]) {
