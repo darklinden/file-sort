@@ -127,6 +127,9 @@ int main(int argc, const char * argv[]) {
         else if (_params[@"p"]) {
             des_name = _params[@"p"];
         }
+        else {
+            des_name = [src_folder.lastPathComponent stringByAppendingString:@"_sorted"];
+        }
         
         NSString* des_folder = [[src_folder stringByDeletingLastPathComponent] stringByAppendingPathComponent:des_name];
         
