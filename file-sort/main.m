@@ -113,8 +113,12 @@ int main(int argc, const char * argv[]) {
         if (!src_folder || [src_folder isEqualToString:@"."]) {
             src_folder = @"";
         }
+        while ([src_folder hasSuffix:@"/"]) {
+            src_folder = [src_folder substringToIndex:src_folder.length - 1];
+        }
+
         if (![src_folder hasPrefix:@"/"]) {
-            src_folder = [[NSString stringWithUTF8String:getcwd(NULL, 1024)] stringByAppendingString:src_folder];
+            src_folder = [[NSString stringWithUTF8String:getcwd(NULL, 1024)] stringByAppendingPathComponent:src_folder];
         }
         
         NSString* des_name = src_folder.lastPathComponent;
