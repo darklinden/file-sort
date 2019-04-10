@@ -103,8 +103,8 @@ int main(int argc, const char * argv[]) {
             }
         }
         
-        NSLog(@"%@", keys);
-        NSLog(@"%@", values);
+//        NSLog(@"%@", keys);
+//        NSLog(@"%@", values);
         
         if (!keys.count || keys.count != values.count) {
             printf("\n\t\t***** file-sort *****\n");
@@ -134,6 +134,7 @@ int main(int argc, const char * argv[]) {
         if (!src_folder || [src_folder isEqualToString:@"."]) {
             src_folder = @"";
         }
+        
         while ([src_folder hasSuffix:@"/"]) {
             src_folder = [src_folder substringToIndex:src_folder.length - 1];
         }
@@ -160,10 +161,10 @@ int main(int argc, const char * argv[]) {
         
         NSFileManager* fmgr = [NSFileManager defaultManager];
         
-//        [fmgr removeItemAtPath:des_folder error:nil];
+        if ([fmgr fileExistsAtPath:des_folder]) [fmgr removeItemAtPath:des_folder error:nil];
         [fmgr createDirectoryAtPath:des_folder withIntermediateDirectories:YES attributes:nil error:nil];
         
-        NSLog(@"src_folder %@", src_folder);
+//        NSLog(@"src_folder %@", src_folder);
         
         BOOL isDirectory = NO;
         BOOL exist = [fmgr fileExistsAtPath:src_folder isDirectory:&isDirectory];
@@ -258,7 +259,7 @@ int main(int argc, const char * argv[]) {
             return compareNumString(n1, n2);
         }];
         
-        NSLog(@"%@", array);
+//        NSLog(@"%@", array);
         
         int cnt = 0;
         int power10 = 0;
