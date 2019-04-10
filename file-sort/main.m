@@ -7,6 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#include <stdlib.h>
 
 NSString* numString(NSString* str)
 {
@@ -59,6 +60,24 @@ NSComparisonResult compareNumString(NSString* n1, NSString* n2)
     return NSOrderedSame;;
 }
 
+NSString *randomString(int len)
+{
+    NSString *lib = @"abcdefghijklmnopqrstuvwxyz";
+    NSMutableString *ret = [NSMutableString string];
+    for (int i = 0; i < len; i++) {
+        int l = arc4random_uniform(26);
+        int u = arc4random_uniform(2);
+        
+        if (u) {
+            [ret appendString:[NSString stringWithFormat:@"%c", [lib characterAtIndex:l]].uppercaseString];
+        }
+        else {
+            [ret appendString:[NSString stringWithFormat:@"%c", [lib characterAtIndex:l]].lowercaseString];
+        }
+    }
+    return ret;
+}
+
 int main(int argc, const char * argv[]) {
     @autoreleasepool {
         
@@ -91,6 +110,7 @@ int main(int argc, const char * argv[]) {
             printf("\n\t\t***** file-sort *****\n");
             printf("\t参数:\n");
             printf("\t-f folder_path\t\t使用文件夹内的文件\n");
+            printf("\t-m \t\t\t0: 默认使用拷贝 1: 使用移动\n");
             printf("\t-p prefix\t\t使用以 prefix 为前缀的文件\n");
             printf("\t-s suffix\t\t使用以 suffix 为后缀的文件\n");
             printf("\t-ap key\t\t\t所有文件名前添加 key\n");
@@ -99,7 +119,8 @@ int main(int argc, const char * argv[]) {
             printf("\t-rp key\t\t\t所有文件名前移除 key\n");
             printf("\t-rs key\t\t\t所有文件名后移除 key\n");
             printf("\t-e key\t\t\t所有文件设置后缀为\n");
-            printf("\t-n 0\t\t\t所有文件排序后从0开始命名\n\n");
+            printf("\t-n 0\t\t\t所有文件排序后从0开始命名\n");
+            printf("\t-rn 5\t\t\t所有文件随机命名\n\n");
             return -1;
         }
         
@@ -151,19 +172,68 @@ int main(int argc, const char * argv[]) {
             printf("\n\t\t***** file-sort *****\n");
             printf("\t参数:\n");
             printf("\t-f folder_path\t\t使用文件夹内的文件\n");
-            printf("\t-p prefix\t\t以 key 为前缀的文件\n");
-            printf("\t-s suffix\t\t以 key 为后缀的文件\n");
+            printf("\t-m \t\t\t0: 默认使用拷贝 1: 使用移动\n");
+            printf("\t-p prefix\t\t使用以 prefix 为前缀的文件\n");
+            printf("\t-s suffix\t\t使用以 suffix 为后缀的文件\n");
             printf("\t-ap key\t\t\t所有文件名前添加 key\n");
             printf("\t-as key\t\t\t所有文件名后添加 key\n");
             printf("\t-r key\t\t\t所有文件名内移除 key\n");
             printf("\t-rp key\t\t\t所有文件名前移除 key\n");
             printf("\t-rs key\t\t\t所有文件名后移除 key\n");
             printf("\t-e key\t\t\t所有文件设置后缀为\n");
-            printf("\t-n 0\t\t\t所有文件排序后从0开始命名\n\n");
+            printf("\t-n 0\t\t\t所有文件排序后从0开始命名\n");
+            printf("\t-rn 5\t\t\t所有文件随机命名\n\n");
             return -1;
         }
         
         NSArray* array = [fmgr contentsOfDirectoryAtPath:src_folder error:nil];
+        
+        if (_params[@"rn"]) {
+            int randLen = atoi([_params[@"rn"] UTF8String]);
+            
+            NSMutableArray *uniqueArr = [NSMutableArray array];
+            for (int i = 0; i < array.count; i++) {
+                NSString* name = array[i];
+                
+                if ([name isEqualToString:@".DS_Store"]) {
+                    continue;
+                }
+                
+                NSString* sn = [name stringByDeletingPathExtension];
+                NSString* en = [name pathExtension];
+                
+                NSString *rn = randomString(randLen);
+                while ([uniqueArr containsObject:rn]) {
+                    rn = randomString(randLen);
+                }
+                
+                [uniqueArr addObject:rn];
+                
+                NSString* src_path = [src_folder stringByAppendingPathComponent:name];
+                NSString* des_path = [des_folder stringByAppendingPathComponent:[rn stringByAppendingPathExtension:en]];
+                
+                if ([_params[@"m"] isEqualToString:@"0"]) {
+                    NSError* err = nil;
+                    if (![fmgr copyItemAtPath:src_path toPath:des_path error:&err]) {
+                        NSLog(@"copy [%@] to [%@] failed!", src_path, des_path);
+                    }
+                    else {
+                        NSLog(@"copied [%@] to [%@] !", src_path, des_path);
+                    }
+                }
+                else {
+                    NSError* err = nil;
+                    if (![fmgr moveItemAtPath:src_path toPath:des_path error:&err]) {
+                        NSLog(@"move [%@] to [%@] failed!", src_path, des_path);
+                    }
+                    else {
+                        NSLog(@"moved [%@] to [%@] !", src_path, des_path);
+                    }
+                }
+            }
+            
+            return 0;
+        }
         
         if (_params[@"s"] || _params[@"p"]) {
             NSMutableArray* new_array = [NSMutableArray array];
@@ -195,7 +265,7 @@ int main(int argc, const char * argv[]) {
         for (int i = 0; i < 100; i++) {
             power10 = pow(10, i);
             if (power10 >= array.count) {
-                cnt = i - 1;
+                cnt = i;
                 break;
             }
         }
