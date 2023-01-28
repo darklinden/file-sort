@@ -1,4 +1,5 @@
-# python implement of file-sort/main.m
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 import argparse
 from functools import cmp_to_key
@@ -6,7 +7,7 @@ import os
 import shutil
 
 
-def numString(str):
+def num_string(str):
     num = "0123456789"
     ret = ""
     for i in range(len(str)):
@@ -18,10 +19,13 @@ def numString(str):
                 e = ret[len(ret) - 1]
                 if num.find(e) != -1:
                     ret += "."
+
+    if len(ret) == 0:
+        return "0"
     return ret
 
 
-def compareNumString(n1, n2):
+def compare_num_str(n1, n2):
     a1 = n1.split(".")
     a2 = n2.split(".")
 
@@ -41,7 +45,7 @@ def compareNumString(n1, n2):
     return 0
 
 
-def randomString(len):
+def random_string(len):
     import random
     lib = "abcdefghijklmnopqrstuvwxyz"
     ret = ""
@@ -56,12 +60,14 @@ def randomString(len):
     return ret
 
 
-def compareNumberName(n1, n2):
+def compare_num_name(n1, n2):
 
-    n1 = numString(os.path.splitext(n1)[0])
-    n2 = numString(os.path.splitext(n2)[0])
+    n1 = os.path.splitext(n1)[0]
+    n1 = num_string(n1)
+    n2 = os.path.splitext(n2)[0]
+    n2 = num_string(n2)
 
-    return compareNumString(n1, n2)
+    return compare_num_str(n1, n2)
 
 
 def main():
@@ -73,12 +79,13 @@ def main():
     parser.add_argument("-s", "--suffix", help="use file name with suffix")
 
     parser.add_argument("-r", "--replace", help="replace string")
+    parser.add_argument(
+        "-c", "--clear", help="clear name string", default=False)
     parser.add_argument("-rp", "--remove_prefix", help="remove prefix")
     parser.add_argument("-rs", "--remove_suffix", help="remove suffix")
     parser.add_argument("-ap", "--add_prefix", help="add prefix")
     parser.add_argument("-as", "--append_suffix", help="append suffix")
-    parser.add_argument(
-        "-n", "--num", help="append suffix number start from", default=0)
+    parser.add_argument("-n", "--num", help="append suffix number start from")
     parser.add_argument("-rand", "--random_name", help="random name")
     args = parser.parse_args()
 
@@ -118,7 +125,7 @@ def main():
                 new_array.append(name)
         array = new_array
 
-    array.sort(key=cmp_to_key(compareNumberName))
+    array.sort(key=cmp_to_key(compare_num_name))
 
     number_len = 0
     if args.num:
@@ -139,7 +146,10 @@ def main():
         ext = os.path.splitext(name)[1]
 
         if args.random_name:
-            name_without_ext = randomString(int(args.random_name))
+            name_without_ext = random_string(int(args.random_name))
+
+        if args.clear:
+            name_without_ext = ""
 
         if args.remove_prefix:
             if name_without_ext.startswith(args.remove_prefix):
